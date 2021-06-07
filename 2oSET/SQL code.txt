@@ -1,0 +1,46 @@
+SELECT	MAX(duration),	MIN(duration)
+FROM	Trip;
+
+
+SELECT	S.city
+FROM	Station AS S, Trip AS T
+WHERE	T.bike_id = 318 AND ((T.start_station_name = S.station_name AND T.start_station_id = S.station_id)
+			      OR (T.end_station_name = S.station_name AND T.end_station_id = S.station_id));
+
+
+SELECT DISTINCT	COUNT(T.id)*100.0/(SELECT COUNT(*) FROM TRIP)
+FROM	Trip AS T
+WHERE	T.start_station_name = T.end_station_name AND T.start_station_id = T.end_station_id
+GROYP BT T.id;
+
+SELECT	T.bike_id, COUNT(T.bike_id)
+FROM	Trip AS T, Station AS S
+WHERE ((T.start_station_name = S.station_name AND T.start_station_id = S.station_id)
+	OR (T.end_station_name = S.station_name AND T.end_station_id = S.station_id))
+	AND (S.city IN (SELECT  W.date
+			FROM   Weather AS W
+			WHERE  W.zip_code = S.zip_code AND W.events IS NOT NULL))
+GROYP BY T.bike_id;
+
+
+WITH temp(tcity, tcitycount)
+AS(   SELECT city, COUNT(city)
+      FROM   Station AS S NATURAL JOIN Trip AS T
+      WHERE  ((S.station_id = T.start_station_id AND S.station_name = T.start_station_name)
+	      OR (S.station_id = T.end_station_id AND S.station_name = T.end_station_name))
+      GROYP BY city
+      HAVING COUNT(city) = 5)
+
+SELECT T.tcity, T.tcitycount
+FROM   temp AS T
+WHERE T.tcitycount IN (SELECT MAX(A.tcitycount)
+                       FROM  temp AS A)
+ORDER BY T.tcity ASC;
+
+
+INSERT INTO Trip
+SELECT S.station_name, S.station_id
+FROM   Trip AS T, Station AS S
+WHERE  (((S.station_id = T.start_station_id AND S.station_name = T.start_station_name)
+        OR (S.station_id = T.end_station_id AND S.station_name = T.end_station_name))
+       AND T.bike_id = 318 AND S.city = 'San Jose');
