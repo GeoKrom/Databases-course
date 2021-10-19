@@ -12,7 +12,7 @@ import sys
 
 USER = "root"
 database_name = "BikeRide"
-PSW = "hg82zt9310A!B"
+PSW = "***********"
 
 def show_databases(cursor):
     cursor.execute("SHOW DATABASES")
